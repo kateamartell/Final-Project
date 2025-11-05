@@ -1,0 +1,7 @@
+<h1>Welcome to the Inscure Forum</h1>
+{{#if user}}
+    <p>You are logged in as {{user.username}}</p>
+    <a href="/comment/new">Add a Comment</a>
+{{else}}
+    <p>Please <a href="/login">Login</a> or <a href="/register">Register</a>.</p>
+{{/if}}
