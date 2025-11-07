@@ -1,13 +1,24 @@
-<nav>
-    <a href="/">Home</a>
-    <a href="/comments">Comments</a>
-    {{#if user}}
-        <span>Welcome, {{user.username}}</span>
-        <form method="POST" action="/logout" style="display:inline;">
-            <button type="submit">logout</button>
-        </form>
-    {{else}}
-        <a href="/register">Register</a>
-        <a href="login">Login</a>
-    {{/if}}
-</nav>
+<header class="header">
+    <div class="container">
+        <nav class="nav">
+            <a href="/" class="logo">
+                 InsecureForum
+            </a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/comments" class="nav-link">Comments</a>
+                {{#if user.isLoggedIn}}
+                    <a href="/comment/new" class="nav-link">New Comment</a>
+                    <form action="/logout" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-outline" style="padding: 0.5rem 1rem;">
+                            Logout ({{user.name}})
+                        </button>
+                    </form>
+                {{else}}
+                    <a href="/register" class="nav-link">Register</a>
+                    <a href="/login" class="btn btn-primary">Login</a>
+                {{/if}}
+            </div>
+        </nav>
+    </div>
+</header>
