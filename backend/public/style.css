@@ -258,3 +258,13 @@ body {
 .mb-1 { margin-bottom: 1rem; }
 .mb-2 { margin-bottom: 2rem; }
 .mt-2 { margin-top: 2rem; }
+/* Chat box*/
+#chat-box {
+  height: 220px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px;
+  overflow-y: auto;
+  background: #fff;
+  margin-bottom: 10px;
+}
