@@ -1,2 +1,5 @@
 backend/node_modules/
 backend/.npmrc
+backend/node_modules/
+backend/db/data.sqlite3
+backend/.env
