@@ -1,6 +1,6 @@
 <div class="container">
     <div class="main-content">
-        <div class="card from-container">
+        <div class="card form-container">
             <h1 class="text-center mb-2">Login</h1>
 
             <form method="POST" action="/login">
@@ -13,14 +13,16 @@
                     <label class="form-label">Password</label>
                     <input type="password" class="form-input" name="password" required>
                 </div>
-                <button type="submit" class="btn btn primary" style="width:100%;">
+
+                <button type="submit" class="btn btn-primary" style="width:100%;">
                     Login
                 </button>
             </form>
 
             <div class="text-center mt-2">
-                <p>No Account? <a href="/register">Register</a></p>
+                <p>No account? <a href="/register">Register</a></p>
             </div>
+
             {{#if error}}
                 <div class="alert alert-error mt-2">
                     {{error}}

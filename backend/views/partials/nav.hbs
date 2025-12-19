@@ -1,16 +1,13 @@
 <header class="header">
     <div class="container">
         <nav class="nav">
-            <a href="/" class="logo">
-                 InsecureForum
-            </a>
+            <a href="/" class="logo">InsecureForum</a>
             <div class="nav-links">
-                <a href="/" class="nav-link">Home</a>
                 <a href="/comments" class="nav-link">Comments</a>
+
                 {{#if user.isLoggedIn}}
-                    <a href="/comment/new" class="nav-link">New Comment</a>
-                    <form action="/logout" method="POST" style="display: inline;">
-                        <button type="submit" class="btn btn-outline" style="padding: 0.5rem 1rem;">
+                    <form action="/logout" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-outline">
                             Logout ({{user.name}})
                         </button>
                     </form>
