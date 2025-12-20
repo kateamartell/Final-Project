@@ -8,11 +8,12 @@ import { Server as SocketIOServer } from "socket.io";
 import { engine } from "express-handlebars";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import hbsHelpers from "./views/helpers.js";
+
 import { initDb } from "./db/init.js";
 import { requireLogin } from "./middleware/auth.js";
 import { validatePassword, validateEmail, validateDisplayName } from "./utils/passwordPolicy.js";
 import { renderMarkdownSafe } from "./utils/markdown.js";
+import hbsHelpers from "./views/helpers.js";
 
 import {
   createUser,
@@ -27,6 +28,7 @@ import {
 } from "./db/users.js";
 
 import { logLoginAttempt, countRecentFailures } from "./db/loginAttempts.js";
+
 import {
   createComment,
   getCommentsPage,
@@ -35,6 +37,7 @@ import {
   setReaction,
   getCommentById
 } from "./db/comments.js";
+
 import { createChatMessage, getRecentChatMessages } from "./db/chat.js";
 
 initDb();
@@ -58,6 +61,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 const SQLiteStore = SQLiteStoreFactory(session);
+
 const sessionMiddleware = session({
   store: new SQLiteStore({
     db: "sessions.sqlite3",
@@ -76,9 +80,9 @@ const sessionMiddleware = session({
     maxAge: 1000 * 60 * 60 * 24 * 7
   }
 });
+
 app.use(sessionMiddleware);
 
-// Make `user` available to nav on every page
 app.use((req, res, next) => {
   if (req.session.userId) {
     res.locals.user = {
@@ -107,38 +111,46 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  res.render("register", { error: null });
+  res.render("register", { error: null, form: {} });
 });
 
 /* ---------- AUTH ---------- */
 
 app.post("/register", async (req, res) => {
-  try {
-    const username = (req.body.username || "").trim();
-    const email = (req.body.email || "").trim();
-    const displayName = (req.body.displayName || "").trim();
-    const password = req.body.password || "";
+  const username = (req.body.username || "").trim();
+  const email = (req.body.email || "").trim();
+  const displayName = (req.body.displayName || "").trim();
+  const password = req.body.password || "";
 
+  const form = { username, email, displayName };
+
+  try {
     if (!username || !email || !displayName || !password) {
-      return res.status(400).render("register", { error: "All fields are required." });
+      return res.status(400).render("register", { error: "All fields are required.", form });
     }
 
     if (getUserByUsername(username)) {
-      return res.status(409).render("register", { error: "Username already exists." });
+      return res.status(409).render("register", { error: "Username already exists.", form });
     }
 
     if (getUserByEmail(email)) {
-      return res.status(409).render("register", { error: "Email already exists." });
+      return res.status(409).render("register", { error: "Email already exists.", form });
     }
 
     const emailCheck = validateEmail(email);
-    if (!emailCheck.ok) return res.status(400).render("register", { error: emailCheck.error });
+    if (!emailCheck.ok) {
+      return res.status(400).render("register", { error: emailCheck.error, form });
+    }
 
     const dnCheck = validateDisplayName(displayName, username);
-    if (!dnCheck.ok) return res.status(400).render("register", { error: dnCheck.error });
+    if (!dnCheck.ok) {
+      return res.status(400).render("register", { error: dnCheck.error, form });
+    }
 
     const pwCheck = validatePassword(password);
-    if (!pwCheck.ok) return res.status(400).render("register", { error: pwCheck.errors.join(" ") });
+    if (!pwCheck.ok) {
+      return res.status(400).render("register", { error: pwCheck.errors.join(" "), form });
+    }
 
     const hash = await argon2.hash(password);
     const userId = createUser({ username, email, displayName, passwordHash: hash });
@@ -147,9 +159,10 @@ app.post("/register", async (req, res) => {
     req.session.username = username;
     req.session.displayName = displayName;
 
-    res.redirect("/comments");
-  } catch {
-    res.status(500).render("register", { error: "Registration failed." });
+    return res.redirect("/comments");
+  } catch (err) {
+    console.error(err);
+    return res.status(500).render("register", { error: "Registration failed.", form });
   }
 });
 
@@ -165,7 +178,7 @@ app.post("/login", async (req, res) => {
       return res.status(401).render("login", { error: "Invalid username or password." });
     }
 
-    if (user.locked_until > Date.now()) {
+    if (user.locked_until && user.locked_until > Date.now()) {
       logLoginAttempt({ username, ip, success: false });
       return res.status(423).render("login", { error: "Account locked. Try again later." });
     }
@@ -188,9 +201,10 @@ app.post("/login", async (req, res) => {
     req.session.username = user.username;
     req.session.displayName = user.display_name;
 
-    res.redirect("/comments");
-  } catch {
-    res.status(500).render("login", { error: "Login failed." });
+    return res.redirect("/comments");
+  } catch (err) {
+    console.error(err);
+    return res.status(500).render("login", { error: "Login failed." });
   }
 });
 
@@ -198,7 +212,7 @@ app.post("/logout", (req, res) => {
   req.session.destroy(() => res.redirect("/"));
 });
 
-/* ---------- COMMENTS PAGE ---------- */
+/* ---------- COMMENTS ---------- */
 
 app.get("/comments", (req, res) => {
   const page = Number(req.query.page || 1);
@@ -219,44 +233,28 @@ app.get("/comments", (req, res) => {
 app.post("/comments", requireLogin, (req, res) => {
   const body = (req.body.body || "").toString();
   if (!body.trim()) return res.redirect("/comments");
+  if (body.length > 5000) return res.redirect("/comments");
+
   createComment(req.session.userId, body);
   res.redirect("/comments");
 });
 
-/* ---------- COMMENTS API (edit/delete/vote) ---------- */
+/* ---------- COMMENTS API ---------- */
 
 app.put("/api/comments/:id", requireLogin, (req, res) => {
   const commentId = Number(req.params.id);
   const body = (req.body.body || "").toString();
+
   if (!Number.isFinite(commentId)) return res.status(400).send("Invalid id.");
   if (!body.trim()) return res.status(400).send("Empty.");
+  if (body.length > 5000) return res.status(400).send("Too long.");
 
   const ok = updateComment(commentId, req.session.userId, body);
   if (!ok) return res.status(403).send("Forbidden.");
+
   res.json({ ok: true });
 });
 
-app.post("/api/comments/:id/vote", requireLogin, (req, res) => {
-  const commentId = Number(req.params.id);
-  const value = Number(req.body.value);
-  if (!Number.isFinite(commentId)) return res.status(400).send("Invalid id.");
-  if (![1, -1].includes(value)) return res.status(400).send("Invalid vote.");
-
-  const c = getCommentById(commentId);
-  if (!c || c.is_deleted) return res.status(404).send("Not found.");
-
-  const score = setReaction(commentId, req.session.userId, value);
-  res.json({ ok: true, score });
-});
-
-app.delete("/api/comments/:id", requireLogin, (req, res) => {
-  const commentId = Number(req.params.id);
-  if (!Number.isFinite(commentId)) return res.status(400).send("Invalid id.");
-
-  const ok = softDeleteComment(commentId, req.session.userId);
-  if (!ok) return res.status(403).send("Forbidden.");
-  res.json({ ok: true });
-});
 app.post("/api/comments/:id/delete", requireLogin, (req, res) => {
   const commentId = Number(req.params.id);
   if (!Number.isFinite(commentId)) return res.status(400).send("Invalid id.");
@@ -267,7 +265,21 @@ app.post("/api/comments/:id/delete", requireLogin, (req, res) => {
   res.redirect("/comments");
 });
 
-/* ---------- PROFILE PAGE ---------- */
+app.post("/api/comments/:id/vote", requireLogin, (req, res) => {
+  const commentId = Number(req.params.id);
+  const value = Number(req.body.value);
+
+  if (!Number.isFinite(commentId)) return res.status(400).send("Invalid id.");
+  if (![1, -1].includes(value)) return res.status(400).send("Invalid vote.");
+
+  const c = getCommentById(commentId);
+  if (!c || c.is_deleted) return res.status(404).send("Not found.");
+
+  const score = setReaction(commentId, req.session.userId, value);
+  res.json({ ok: true, score });
+});
+
+/* ---------- PROFILE ---------- */
 
 app.get("/profile", requireLogin, (req, res) => {
   const profile = getUserById(req.session.userId);
@@ -283,6 +295,7 @@ app.post("/api/profile/display-name", requireLogin, (req, res) => {
 
   updateDisplayName(user.id, displayName);
   req.session.displayName = displayName;
+
   res.redirect("/profile");
 });
 
@@ -344,21 +357,26 @@ io.on("connection", (socket) => {
   const userId = socket.request.session?.userId;
 
   socket.on("chat:send", (payload) => {
-    if (!userId) return;
+    try {
+      if (!userId) return;
 
-    const body = (payload?.body || "").toString();
-    if (!body.trim() || body.length > 2000) return;
+      const body = (payload?.body || "").toString();
+      if (!body.trim()) return;
+      if (body.length > 2000) return;
 
-    createChatMessage(userId, body);
-    const user = getUserById(userId);
+      createChatMessage(userId, body);
+      const user = getUserById(userId);
 
-    io.emit("chat:new", {
-      body,
-      created_at: Date.now(),
-      display_name: user.display_name,
-      profile_color: user.profile_color,
-      avatar: user.avatar
-    });
+      io.emit("chat:new", {
+        body,
+        created_at: Date.now(),
+        display_name: user.display_name,
+        profile_color: user.profile_color,
+        avatar: user.avatar
+      });
+    } catch (err) {
+      console.error(err);
+    }
   });
 });
 

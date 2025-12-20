@@ -1,72 +1,92 @@
 <div class="container">
-    <div class="main-content">
-        <div class="card">
-            <h1 class="text-center mb-2">Comments</h1>
+  <div class="main-content">
+    <div class="card">
+      <h1 class="text-center mb-2">Comments</h1>
 
-            {{#if user.isLoggedIn}}
-                <form method="POST" action="/comments" class="mb-2">
-                    <textarea name="body" class="form-input" rows="4" required></textarea>
-                    <button type="submit" class="btn btn-primary mt-1">Post Comment</button>
-                </form>
-            {{else}}
-                <div class="alert alert-warning text-center mb-2">
-                    <a href="/login">Login</a> to post comments
-                </div>
-            {{/if}}
-
-            {{#if comments.length}}
-                {{#each comments}}
-                    <div class="comment-card">
-                        <div class="comment-header">
-                            <span class="author" style="color: {{profile_color}}">
-                                {{display_name}}
-                            </span>
-                            <span class="timestamp">
-                                {{created_at}}
-                            </span>
-                        </div>
-
-                        <div class="comment-text">
-                            {{{bodyHtml}}}
-                        </div>
-
-                        {{#if ../user.isLoggedIn}}
-                            {{#if (eq user_id ../user.id)}}
-				<form method="POST" action="/api/comments/{{id}}/delete" style="display:inline;">
- 				 <button class="btn btn-outline btn-sm" type="submit">Delete</button>	
-				</form>
-                            {{/if}}
-                        {{/if}}
-                    </div>
-                {{/each}}
-
-                <div class="pagination text-center mt-2">
-                    {{#if (gt page 1)}}
-                        <a href="/comments?page={{subtract page 1}}" class="btn btn-outline">Previous</a>
-                    {{/if}}
-
-                    <span>Page {{page}} of {{totalPages}}</span>
-
-                    {{#if (lt page totalPages)}}
-                        <a href="/comments?page={{add page 1}}" class="btn btn-outline">Next</a>
-                    {{/if}}
-                </div>
-            {{else}}
-                <p class="text-center">No comments yet</p>
-            {{/if}}
+      {{#if user.isLoggedIn}}
+        <form method="POST" action="/comments" class="mb-2">
+          <textarea name="body" class="form-input" rows="4" required></textarea>
+          <button type="submit" class="btn btn-primary mt-1">Post Comment</button>
+        </form>
+      {{else}}
+        <div class="alert alert-warning text-center mb-2">
+          <a href="/login">Login</a> to post comments
         </div>
+      {{/if}}
 
-        <div class="card mt-3">
-            <h2>Live Chat</h2>
-            <div id="chat-box"></div>
+      {{#if comments.length}}
+        {{#each comments}}
+          <div class="comment-card" data-id="{{id}}">
+            <div class="comment-header">
+              <span class="author" style="color: {{profile_color}}">
+                {{display_name}}
+              </span>
+              <span class="timestamp">
+                {{created_at}}
+                {{#if edit_count}}(edited){{/if}}
+              </span>
+            </div>
 
-            {{#if user.isLoggedIn}}
-                <input id="chat-input" class="form-input" placeholder="Type message...">
-                <button id="chat-send" class="btn btn-primary mt-1">Send</button>
-            {{else}}
-                <p class="text-center">Login to join the chat</p>
-            {{/if}}
+            <div class="comment-text" data-body>
+              {{{bodyHtml}}}
+            </div>
+
+            <div class="comment-actions" style="margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <!-- Voting -->
+              {{#if ../user.isLoggedIn}}
+                <button class="vote-btn btn btn-outline btn-sm" data-vote="1" type="button">⬆️</button>
+                <span class="vote-score" style="min-width:24px; text-align:center;">{{score}}</span>
+                <button class="vote-btn btn btn-outline btn-sm" data-vote="-1" type="button">⬇️</button>
+              {{else}}
+                <span style="color:#6b7280;">Login to vote</span>
+              {{/if}}
+
+              <!-- Owner-only actions -->
+              {{#if ../user.isLoggedIn}}
+                {{#if (eq user_id ../user.id)}}
+                  <button class="edit-btn btn btn-outline btn-sm" type="button">Edit</button>
+
+                  <form method="POST" action="/api/comments/{{id}}/delete" style="display:inline;">
+                    <button class="btn btn-outline btn-sm" type="submit">Delete</button>
+                  </form>
+                {{/if}}
+              {{/if}}
+            </div>
+          </div>
+        {{/each}}
+
+        <div class="pagination text-center mt-2">
+          {{#if (gt page 1)}}
+            <a href="/comments?page={{subtract page 1}}" class="btn btn-outline">Previous</a>
+          {{/if}}
+
+          <span>Page {{page}} of {{totalPages}}</span>
+
+          {{#if (lt page totalPages)}}
+            <a href="/comments?page={{add page 1}}" class="btn btn-outline">Next</a>
+          {{/if}}
         </div>
+      {{else}}
+        <p class="text-center">No comments yet</p>
+      {{/if}}
     </div>
-</div>
 
+    <!-- Live Chat -->
+    <div class="card mt-3">
+      <h2 class="text-center mb-2">Live Chat</h2>
+
+      <div id="chat-box"></div>
+
+      {{#if user.isLoggedIn}}
+        <div style="display:flex; gap:10px;">
+          <input id="chat-input" class="form-input" placeholder="Type a message..." />
+          <button id="chat-send" class="btn btn-primary" type="button">Send</button>
+        </div>
+      {{else}}
+        <div class="alert alert-warning text-center mb-2">
+          <a href="/login">Login</a> to use live chat
+        </div>
+      {{/if}}
+    </div>
+  </div>
+</div>
