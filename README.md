@@ -164,6 +164,15 @@ Users have:
 
 - Custom Socket.io proxy location required for WebSockets
 
+-----------------
+### Known Limitations
+
+- Password recovery email not implemented
+
+- No image upload for avatars
+
+- Single-server deployment
+
 -----------------------
 
 ### Testing
