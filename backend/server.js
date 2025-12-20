@@ -173,38 +173,55 @@ app.post("/login", async (req, res) => {
 
   try {
     const user = getUserByUsername(username);
+
     if (!user) {
       logLoginAttempt({ username, ip, success: false });
-      return res.status(401).render("login", { error: "Invalid username or password." });
+      return res.status(401).render("login", {
+        error: "Invalid username or password."
+      });
     }
 
+    // 🔒 ACCOUNT LOCK CHECK (FIRST)
     if (user.locked_until && user.locked_until > Date.now()) {
-      logLoginAttempt({ username, ip, success: false });
-      return res.status(423).render("login", { error: "Account locked. Try again later." });
+      const minutes = Math.ceil((user.locked_until - Date.now()) / 60000);
+      return res.status(423).render("login", {
+        error: `Account locked due to too many failed attempts. Try again in ${minutes} minute(s).`
+      });
     }
 
     const ok = await argon2.verify(user.password_hash, password);
     logLoginAttempt({ username, ip, success: ok });
 
     if (!ok) {
-      const fails = countRecentFailures(username, 15 * 60 * 1000);
-      if (fails >= 5) {
-        setLockedUntil(user.id, Date.now() + 15 * 60 * 1000);
-        return res.status(423).render("login", { error: "Too many failed attempts. Locked for 15 minutes." });
+      const failures = countRecentFailures(username, 15 * 60 * 1000);
+
+      if (failures >= 5) {
+        const lockUntil = Date.now() + 15 * 60 * 1000;
+        setLockedUntil(user.id, lockUntil);
+
+        return res.status(423).render("login", {
+          error: "Too many failed login attempts. Your account has been locked for 15 minutes."
+        });
       }
-      return res.status(401).render("login", { error: "Invalid username or password." });
+
+      return res.status(401).render("login", {
+        error: "Invalid username or password."
+      });
     }
 
+    // ✅ SUCCESSFUL LOGIN
     setLockedUntil(user.id, 0);
 
     req.session.userId = user.id;
     req.session.username = user.username;
     req.session.displayName = user.display_name;
 
-    return res.redirect("/comments");
+    res.redirect("/comments");
   } catch (err) {
     console.error(err);
-    return res.status(500).render("login", { error: "Login failed." });
+    res.status(500).render("login", {
+      error: "Login failed. Please try again."
+    });
   }
 });
 
