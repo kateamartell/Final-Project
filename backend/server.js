@@ -62,6 +62,8 @@ const app = express();
 const server = http.createServer(app);
 const io = new SocketIOServer(server);
 
+// Required when running behind a reverse proxy (Nginx Proxy Manager)
+// Allows Express to correctly detect HTTPS for secure cookies
 app.set("trust proxy", 1);
 
 const __filename = fileURLToPath(import.meta.url);
@@ -78,6 +80,8 @@ app.use(express.static(path.join(__dirname, "public")));
 
 const SQLiteStore = SQLiteStoreFactory(session);
 
+// Sessions are stored server-side in SQLite for persistence and security.
+// Cookies are HttpOnly and marked Secure automatically when HTTPS is detected.
 const sessionMiddleware = session({
   store: new SQLiteStore({
     db: "sessions.sqlite3",
@@ -182,6 +186,10 @@ app.post("/register", async (req, res) => {
   }
 });
 
+// Account lockout logic prevents brute-force attacks.
+// Failed login attempts are logged with IP and timestamp.
+// Accounts are temporarily locked after repeated failures.
+
 app.post("/login", async (req, res) => {
   const username = (req.body.username || "").trim();
   const password = req.body.password || "";
@@ -246,6 +254,8 @@ app.post("/logout", (req, res) => {
 });
 
 /* ---------- COMMENTS ---------- */
+// User comments support Markdown formatting.
+// Output is sanitized to prevent XSS attacks.
 
 app.get("/comments", (req, res) => {
   const page = Number(req.query.page || 1);
