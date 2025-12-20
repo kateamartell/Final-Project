@@ -1,3 +1,19 @@
+/**
+ * COS 498 Final Project – Server
+ * --------------------------------
+ * Main Express server for the Secure Wild West Forum.
+ *
+ * Responsibilities:
+ * - Configure Express, Handlebars, sessions, and security middleware
+ * - Handle authentication (register, login, logout)
+ * - Enforce account lockout and password security
+ * - Serve comments with pagination and enhanced features
+ * - Provide profile management routes
+ * - Implement real-time chat using Socket.io
+ * - Support HTTPS deployment behind Nginx Proxy Manager
+ */
+
+
 import express from "express";
 import session from "express-session";
 import SQLiteStoreFactory from "connect-sqlite3";
