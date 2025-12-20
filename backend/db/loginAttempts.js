@@ -1,3 +1,16 @@
+/**
+ * Login Attempts Model
+ * --------------------
+ * Records all login attempts with:
+ * - Username
+ * - IP address
+ * - Timestamp
+ * - Success or failure
+ *
+ * Used to enforce account lockout rules.
+ */
+
+
 import db from "./db.js";
 
 export function logLoginAttempt({ username, ip, success }) {
