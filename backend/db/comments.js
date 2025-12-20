@@ -1,3 +1,15 @@
+/**
+ * Comments Database Model
+ * -----------------------
+ * Handles all comment-related operations:
+ * - Creating comments
+ * - Pagination using LIMIT/OFFSET
+ * - Editing comments (owner only)
+ * - Soft deleting comments
+ * - Comment reactions (upvote/downvote)
+ */
+
+
 import db from "./db.js";
 
 export function createComment(userId, body) {
