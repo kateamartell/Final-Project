@@ -1,3 +1,13 @@
+/**
+ * User Database Model
+ * -------------------
+ * Handles all database operations related to users:
+ * - Creating users
+ * - Fetching users by username/email/id
+ * - Updating passwords, emails, display names
+ * - Managing account lockout state
+ */
+
 import db from "./db.js";
 
 export function createUser({ username, email, displayName, passwordHash }) {
