@@ -1,3 +1,11 @@
+/**
+ * Chat Client-Side Logic
+ * ----------------------
+ * Connects to the Socket.io server to send and receive chat messages
+ * in real time. Loads chat history on page load.
+ */
+
+
 (() => {
   function el(id) {
     return document.getElementById(id);
