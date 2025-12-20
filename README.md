@@ -1,161 +1,187 @@
-COS 498 Final Project – Secure Wild West Forum
-
+### COS 498 Final Project – Secure Wild West Forum
 
 Live Site: https://cloverpdfs.org
 
 This project is an upgraded version of the Wild West Forum midterm. It adds SQLite database persistence, secure authentication, user profiles, account lockout, real-time chat, enhanced comments, and HTTPS deployment using Nginx Proxy Manager.
 
-Run Instructions
+--------------
 
-Open Terminal
+### Run Instructions
 
-SSH into the server
+1. Open Terminal
 
-ssh -p 2004 kateamartell@157.245.112.126
+2. SSH into the server
 
-
-Navigate to the project
-
-cd Final-Project/backend
+    ssh -p 2004 kateamartell@157.245.112.126
 
 
-Install dependencies
+3.Navigate to the project
 
-npm install
-
-
-Start the server
-
-npm start
+    cd Final-Project/backend
 
 
-Open a browser
+4.Install dependencies
 
-Navigate to
+   npm install
 
-https://cloverpdfs.org
 
-Environment Configuration
+5. Start the server
 
-Optional environment variables:
+   npm start
 
-PORT (default 3000)
 
-SESSION_SECRET
+6. Open a browser
 
-NODE_ENV=production
+   Navigate to https://cloverpdfs.org
 
-Database
+---------------
 
-The application uses SQLite3 for persistent storage.
-Data survives server restarts.
+### Environment Configuration
 
-Tables include:
+- Optional environment variables:
 
-users
+- PORT (default 3000)
 
-sessions
+- SESSION_SECRET
 
-comments
+- NODE_ENV=production
 
-login_attempts
+------------------
 
-chat_messages
+### Database
 
-HTTPS Deployment
+- The application uses SQLite3 for persistent storage.
 
-The site is deployed behind Nginx Proxy Manager using a Let’s Encrypt SSL certificate.
+- Data survives server restarts.
 
-All traffic is forced over HTTPS
+# Tables include:
 
-WebSockets are enabled
+- users
 
-A custom /socket.io/ proxy location is configured to support real-time chat
+- sessions
 
-Authentication & Security
+- comments
 
-Passwords are hashed using Argon2
+- login_attempts
 
-Plaintext passwords are never stored
+- chat_messages
 
-Password strength requirements are enforced
+--------------------
 
-Login attempts are logged with IP and timestamp
+### HTTPS Deployment
 
-Accounts are temporarily locked after repeated failed login attempts
+- The site is deployed behind Nginx Proxy Manager using a Let’s Encrypt SSL certificate.
 
-Sessions are stored securely in SQLite
+- All traffic is forced over HTTPS
 
-User Accounts & Profiles
+- WebSockets are enabled
+
+- A custom /socket.io/ proxy location is configured to support real-time chat
+
+-------------
+
+### Authentication & Security
+
+- Passwords are hashed using Argon2
+
+- Plaintext passwords are never stored
+
+- Password strength requirements are enforced
+
+- Login attempts are logged with IP and timestamp
+
+- Accounts are temporarily locked after repeated failed login attempts
+
+- Sessions are stored securely in SQLite
+
+--------------------
+
+### User Accounts & Profiles
 
 Users have:
-Username (login only)
 
-Email (unique)
+- Username (login only)
 
-Display name (shown publicly)
+- Email (unique)
 
-Profile page allows:
+- Display name (shown publicly)
 
-Changing password (forces re-login)
+- Profile page allows:
 
-Changing email
+- Changing password (forces re-login)
 
-Changing display name
+- Changing email
 
-Profile customization (color/avatar)
-Comments
+- Changing display name
 
-Comments are paginated using page-based navigation
+- Profile customization (color/avatar)
 
-Comments support Markdown formatting (sanitized)
+---------------
 
-Users can edit their own comments
+### Comments
 
-Users can delete their own comments
+- Comments are paginated using page-based navigation
 
-Comments support upvote and downvote reactions
-Real-Time Chat
+- Comments support Markdown formatting (sanitized)
 
-Live chat implemented using Socket.io
+- Users can edit their own comments
 
-Messages appear instantly to all connected users
+- Users can delete their own comments
 
-Chat history is stored in the database
+- Comments support upvote and downvote reactions
 
-Messages display display name, profile color, and timestamp
-Chat API
+--------------------
 
-GET /api/chat returns recent chat messages
+### Real-Time Chat
 
-Socket.io events handle sending and receiving chat messages
-Design Decisions
+- Live chat implemented using Socket.io
 
-SQLite chosen for simplicity and reliability
+- Messages appear instantly to all connected users
 
-Server-side sessions used for improved security
+- Chat history is stored in the database
 
-Soft deletes used for comments
+- Messages display display name, profile color, and timestamp
 
-HTTPS handled by reverse proxy instead of Node
+--------------
 
-Custom Socket.io proxy location required for WebSockets
-Testing
+### Chat API
 
-The following were tested:
+- GET /api/chat returns recent chat messages
+  
+- Socket.io events handle sending and receiving chat messages
 
-User registration and login
+-------- 
 
-Account lockout after failed logins
+### Design Decisions
 
-Profile updates
+- SQLite chosen for simplicity and reliability
 
-Comment pagination
+- Server-side sessions used for improved security
 
-Comment editing, deleting, voting, and Markdown
+- Soft deletes used for comments
 
-Real-time chat between browsers
+- HTTPS handled by reverse proxy instead of Node
 
-HTTPS connection
+- Custom Socket.io proxy location required for WebSockets
 
-Database persistence after restart
+-----------------------
+
+### Testing
+
+- The following were tested:
+
+- User registration and login
+
+- Account lockout after failed logins
+
+- Profile updates
+
+- Comment pagination
+
+- Comment editing, deleting, voting, and Markdown
+
+- Real-time chat between browsers
+
+- HTTPS connection
+
+- Database persistence after restart
