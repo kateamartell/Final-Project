@@ -1,3 +1,10 @@
+/**
+ * Chat Database Model
+ * -------------------
+ * Stores and retrieves chat messages for the real-time chat system.
+ * Messages are persisted so chat history survives server restarts.
+ */
+
 import db from "./db.js";
 
 export function createChatMessage(userId, body) {
