@@ -1,3 +1,13 @@
+/**
+ * Comments Client-Side Logic
+ * --------------------------
+ * Handles client-side interactions for comments:
+ * - Upvote / downvote reactions
+ * - Editing comments inline
+ * - Sending updates to the backend via fetch API
+ */
+
+
 document.addEventListener("DOMContentLoaded", () => {
 
   /* ---------- VOTING ---------- */
